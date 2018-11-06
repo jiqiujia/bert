@@ -1,5 +1,37 @@
 # BERT
 
+**\*\*\*\*\* New November 5th, 2018: Third-party PyTorch version of BERT
+available \*\*\*\*\***
+
+NLP researchers from HuggingFace made a
+[PyTorch version of BERT available](https://github.com/huggingface/pytorch-pretrained-BERT)
+which is compatible with our pre-trained checkpoints and is able to reproduce
+our results. (Thanks!) We were not involved in the creation or maintenance of
+the PyTorch implementation so please direct any questions towards the authors of
+that repository.
+
+**\*\*\*\*\* New November 3rd, 2018: Multilingual and Chinese models available
+\*\*\*\*\***
+
+We have made two new BERT models available:
+
+*   **[`BERT-Base, Multilingual`](https://storage.googleapis.com/bert_models/2018_11_03/multilingual_L-12_H-768_A-12.zip)**:
+    102 languages, 12-layer, 768-hidden, 12-heads, 110M parameters
+*   **[`BERT-Base, Chinese`](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip)**:
+    Chinese Simplified and Traditional, 12-layer, 768-hidden, 12-heads, 110M
+    parameters
+
+We use character-based tokenization for Chinese, and WordPiece tokenization for
+all other languages. Both models should work out-of-the-box without any code
+changes. We did update the implementation of `BasicTokenizer` in
+`tokenization.py` to support Chinese character tokenization, so please update if
+you forked it. However, we did not change the tokenization API.
+
+For more, see the
+[Multilingual README](https://github.com/google-research/bert/blob/master/multilingual.md).
+
+**\*\*\*\*\* End new information \*\*\*\*\***
+
 ## Introduction
 
 **BERT**, or **B**idirectional **E**ncoder **R**epresentations from
@@ -41,8 +73,8 @@ minutes.
 
 ## What is BERT?
 
-BERT is method of pre-training language representations, meaning that we train a
-general-purpose "language understanding" model on a large text corpus (like
+BERT is a method of pre-training language representations, meaning that we train
+a general-purpose "language understanding" model on a large text corpus (like
 Wikipedia), and then use that model for downstream NLP tasks that we care about
 (like question answering). BERT outperforms previous methods because it is the
 first *unsupervised*, *deeply bidirectional* system for pre-training NLP.
@@ -154,6 +186,9 @@ Part-of-Speech tagging).
 These models are all released under the same license as the source code (Apache
 2.0).
 
+For information about the Multilingual and Chinese model, see the
+[Multilingual README](https://github.com/google-research/bert/blob/master/multilingual.md).
+
 The links to the models are here (right-click, 'Save link as...' on the name):
 
 *   **[`BERT-Base, Uncased`](https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip)**:
@@ -164,6 +199,11 @@ The links to the models are here (right-click, 'Save link as...' on the name):
     12-layer, 768-hidden, 12-heads , 110M parameters
 *   **`BERT-Large, Cased`**: 24-layer, 1024-hidden, 16-heads, 340M parameters
     (Not available yet. Needs to be re-generated).
+*   **[`BERT-Base, Multilingual`](https://storage.googleapis.com/bert_models/2018_11_03/multilingual_L-12_H-768_A-12.zip)**:
+    102 languages, 12-layer, 768-hidden, 12-heads, 110M parameters
+*   **[`BERT-Base, Chinese`](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip)**:
+    Chinese Simplified and Traditional, 12-layer, 768-hidden, 12-heads, 110M
+    parameters
 
 Each .zip file contains three items:
 
@@ -748,9 +788,13 @@ information.
 
 #### Is there a PyTorch version available?
 
-There is no official PyTorch implementation. If someone creates a line-for-line
-PyTorch reimplementation so that our pre-trained checkpoints can be directly
-converted, we would be happy to link to that PyTorch version here.
+There is no official PyTorch implementation. However, NLP researchers from
+HuggingFace made a
+[PyTorch version of BERT available](https://github.com/huggingface/pytorch-pretrained-BERT)
+which is compatible with our pre-trained checkpoints and is able to reproduce
+our results. We were not involved in the creation or maintenance of the PyTorch
+implementation so please direct any questions towards the authors of that
+repository.
 
 #### Will models in other languages be released?
 
