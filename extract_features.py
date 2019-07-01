@@ -36,6 +36,8 @@ flags.DEFINE_string("input_file", None, "")
 flags.DEFINE_string("output_file", None, "")
 
 flags.DEFINE_string("layers", "-1,-2,-3,-4", "")
+flags.DEFINE_bool("CLSOnly", True,
+                  "if only extract CLS token feature")
 
 flags.DEFINE_string(
     "bert_config_file", None,
@@ -77,6 +79,13 @@ flags.DEFINE_bool(
     "tf.nn.embedding_lookup will be used. On TPUs, this should be True "
     "since it is much faster.")
 
+flags.DEFINE_bool(
+    "do_export", False,
+    "Whether to export the model.")
+flags.DEFINE_string(
+    "export_dir", None,
+    "The dir where the exported model will be written.")
+flags.DEFINE_string("output_dir", None, "")
 
 class InputExample(object):
 
@@ -339,6 +348,18 @@ def read_examples(input_file):
       unique_id += 1
   return examples
 
+def serving_input_fn():
+    label_ids = tf.placeholder(tf.int32, [None], name='unique_ids')
+    input_ids = tf.placeholder(tf.int32, [None, FLAGS.max_seq_length], name='input_ids')
+    input_mask = tf.placeholder(tf.int32, [None, FLAGS.max_seq_length], name='input_mask')
+    segment_ids = tf.placeholder(tf.int32, [None, FLAGS.max_seq_length], name='input_type_ids')
+    input_fn = tf.estimator.export.build_raw_serving_input_receiver_fn({
+        'unique_ids': label_ids,
+        'input_ids': input_ids,
+        'input_mask': input_mask,
+        'input_type_ids': segment_ids,
+    })()
+    return input_fn
 
 def main(_):
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -353,6 +374,7 @@ def main(_):
   is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
   run_config = tf.contrib.tpu.RunConfig(
       master=FLAGS.master,
+      model_dir=FLAGS.output_dir,
       tpu_config=tf.contrib.tpu.TPUConfig(
           num_shards=FLAGS.num_tpu_cores,
           per_host_input_for_training=is_per_host))
@@ -384,9 +406,11 @@ def main(_):
   input_fn = input_fn_builder(
       features=features, seq_length=FLAGS.max_seq_length)
 
+  estimator._export_to_tpu = False
+  save_hook = tf.train.CheckpointSaverHook(FLAGS.output_dir, save_secs=1)
   with codecs.getwriter("utf-8")(tf.gfile.Open(FLAGS.output_file,
                                                "w")) as writer:
-    for result in estimator.predict(input_fn, yield_single_examples=True):
+    for result in estimator.predict(input_fn, yield_single_examples=True, hooks=[save_hook]):
       unique_id = int(result["unique_id"])
       feature = unique_id_to_feature[unique_id]
       output_json = collections.OrderedDict()
@@ -406,9 +430,13 @@ def main(_):
         features["token"] = token
         features["layers"] = all_layers
         all_features.append(features)
+        if FLAGS.CLSOnly:
+            break
       output_json["features"] = all_features
       writer.write(json.dumps(output_json) + "\n")
 
+    if FLAGS.do_export:
+        estimator.export_savedmodel(FLAGS.export_dir, serving_input_fn)
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("input_file")
